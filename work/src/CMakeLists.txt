@@ -10,11 +10,13 @@ SET(headers
 	"opengl.hpp"
 	"simple_shader.hpp"
 	"simple_image.hpp"
+	"terrain.hpp"
 )
 
 
 # TODO list your source files (.cpp) here
 SET(sources
+	"terrain.cpp"
 	"main.cpp"
 )
 
