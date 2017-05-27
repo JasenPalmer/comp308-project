@@ -22,18 +22,21 @@ class Terrain {
     
 private:
     // Fields
+    int const TERRAIN_SIZE = 600;
+    
     std::string t_texture_filename;     // String for storing texture filename
     GLuint t_texture;                   // ID of created texture
-    std::vector<cgra::vec3> m_points;	// Point list
-    std::vector<cgra::vec2> m_uvs;		// Texture Coordinate list
-    std::vector<cgra::vec3> m_normals;	// Normal list
-    std::vector<triangle> m_triangles;	// Triangle/Face list
-    GLuint t_displayListPoly = 0;       // ID for Polygon Displaylist
+    std::vector<cgra::vec3> t_points;	// Point list
+    std::vector<cgra::vec2> t_uvs;		// Texture Coordinate list
+    std::vector<cgra::vec3> t_normals;	// Normal list
+    std::vector<triangle> t_triangles;	// Triangle/Face list
+    GLuint t_displayList = 0;       // ID for Polygon Displaylist
     
     // Methods
     void readTex(std::string);
     void generateTerrain();
-    void generateNormals();
+    void createNormals();
+    void createDisplayList();
     
 public:
     Terrain(std::string);
