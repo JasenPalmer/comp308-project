@@ -18,30 +18,34 @@ struct triangle {
     vertex v[3]; //requires 3 verticies
 };
 
+int const TERRAIN_SIZE = 600;
+
 class Terrain {
     
 private:
     // Fields
-    int const TERRAIN_SIZE = 600;
-    
     std::string t_texture_filename;     // String for storing texture filename
     GLuint t_texture;                   // ID of created texture
     std::vector<cgra::vec3> t_points;	// Point list
     std::vector<cgra::vec2> t_uvs;		// Texture Coordinate list
     std::vector<cgra::vec3> t_normals;	// Normal list
     std::vector<triangle> t_triangles;	// Triangle/Face list
-    GLuint t_displayList = 0;       // ID for Polygon Displaylist
+    GLuint t_displayList;       // ID for Polygon Displaylist
+    float terrain_heights[TERRAIN_SIZE][TERRAIN_SIZE];
+    cgra::vec3 terrain_normals[TERRAIN_SIZE][TERRAIN_SIZE];
     
     // Methods
     void readTex(std::string);
-    void generateTerrain();
-    void createNormals();
+    void generateHeights();
+    void generateNormals();
     void createDisplayList();
+    float randomFloat(float, float);
     
 public:
     Terrain(std::string);
     ~Terrain();
     
+    void setupTerrain();
     void renderTerrain();
     
 };

@@ -23,6 +23,7 @@
 #include "simple_image.hpp"
 #include "simple_shader.hpp"
 #include "opengl.hpp"
+#include "terrain.hpp"
 
 using namespace std;
 using namespace cgra;
@@ -30,6 +31,8 @@ using namespace cgra;
 // Window
 //
 GLFWwindow* g_window;
+
+Terrain terrain = Terrain("");
 
 
 // Projection values
@@ -188,7 +191,8 @@ void render(int width, int height) {
 	// Uses the default OpenGL pipeline
 	//
 	if (!g_useShader) {
-
+        glColor3f(0.0f, 1.0f, 0.0f);
+        terrain.renderTerrain();
 	}
 
 
@@ -197,39 +201,6 @@ void render(int width, int height) {
 	//
 	else {
 
-		// Texture setup
-		//
-		// Enable Drawing texures
-		glEnable(GL_TEXTURE_2D);
-		// Set the location for binding the texture
-		glActiveTexture(GL_TEXTURE0);
-		// Bind the texture
-		glBindTexture(GL_TEXTURE_2D, g_texture);
-
-		// Use the shader we made
-		glUseProgram(g_shader);
-
-		// Set our sampler (texture0) to use GL_TEXTURE0 as the source
-		glUniform1i(glGetUniformLocation(g_shader, "texture0"), 0);
-
-
-		// Render a single square as our geometry
-		// You would normally render your geometry here
-		glBegin(GL_QUADS);
-		glNormal3f(0.0, 0.0, 1.0);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(-5.0, -5.0, 0.0);
-		glTexCoord2f(0.0, 1.0);
-		glVertex3f(-5.0, 5.0, 0.0);
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(5.0, 5.0, 0.0);
-		glTexCoord2f(1.0, 0.0);
-		glVertex3f(5.0, -5.0, 0.0);
-		glEnd();
-		glFlush();
-
-		// Unbind our shader
-		glUseProgram(0);
 	}
 
 
@@ -315,6 +286,7 @@ int main(int argc, char **argv) {
 	initLight();
 	initShader();
 
+    terrain.setupTerrain();
 
 
 	// Loop until the user closes the window
