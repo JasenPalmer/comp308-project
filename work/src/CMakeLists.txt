@@ -11,6 +11,7 @@ SET(headers
 	"simple_shader.hpp"
 	"simple_image.hpp"
 	"terrain.hpp"
+	"perlin_noise.hpp"
 )
 
 
@@ -18,6 +19,7 @@ SET(headers
 SET(sources
 	"terrain.cpp"
 	"main.cpp"
+	"perlin_noise.cpp"
 )
 
 # Add executable target and link libraries
