@@ -50,7 +50,7 @@ void Terrain::generateHeights() {
     cout << "Started: generating heights" << endl;
     for (int z = 0;  z < TERRAIN_SIZE; z++) {
         for (int x = 0; x < TERRAIN_SIZE; x++) {
-            terrain_heights[x][z] = randomFloat(-10.0f, 10.0f);
+            terrain_heights[x][z] = randomFloat(-1.0f, 1.0f);
         }
     }
     cout << "Finished: generating heights" << endl;
@@ -58,9 +58,85 @@ void Terrain::generateHeights() {
 // TODO: Find method of per vertice normal generation, may require heights to be genrated first.
 void Terrain::generateNormals() {
     cout << "Started: generating normals" << endl;
-    for (int z = 0; z < TERRAIN_SIZE; z++) {
-        for (int x = 0; x < TERRAIN_SIZE; x++) {
-            terrain_normals[x][z] = vec3(0, 0, 0);
+    vec3 normals[TERRAIN_SIZE][TERRAIN_SIZE];
+    for(int z = 0; z < TERRAIN_SIZE; z++)
+    {
+        for(int x = 0; x < TERRAIN_SIZE; x++)
+        {
+            vec3 sum(0.0f, 0.0f, 0.0f);
+            
+            vec3 out;
+            if (z > 0)
+            {
+                out = vec3(0.0f, terrain_heights[z - 1][x] - terrain_heights[z][x], -1.0f);
+            }
+            vec3 in;
+            if (z < TERRAIN_SIZE - 1)
+            {
+                in = vec3(0.0f, terrain_heights[z + 1][x] - terrain_heights[z][x], 1.0f);
+            }
+            vec3 left;
+            if (x > 0)
+            {
+                left = vec3(-1.0f, terrain_heights[z][x - 1] - terrain_heights[z][x], 0.0f);
+            }
+            vec3 right;
+            if (x < TERRAIN_SIZE - 1)
+            {
+                right = vec3(1.0f, terrain_heights[z][x + 1] - terrain_heights[z][x], 0.0f);
+            }
+            
+            if (x > 0 && z > 0)
+            {
+                sum += normalize(cross(out, left));
+            }
+            if (x > 0 && z < TERRAIN_SIZE - 1)
+            {
+                sum += normalize(cross(left, in));
+            }
+            if (x < TERRAIN_SIZE - 1 && z < TERRAIN_SIZE - 1)
+            {
+                sum += normalize(cross(in, right));
+            }
+            if (x < TERRAIN_SIZE - 1 && z > 0)
+            {
+                sum += normalize(cross(right, out));
+            }
+            
+            normals[z][x] = sum;
+        }
+    }
+    
+    //Smooth out the normals
+    const float FALLOUT_RATIO = 0.5f;
+    for(int z = 0; z < TERRAIN_SIZE; z++)
+    {
+        for(int x = 0; x < TERRAIN_SIZE; x++)
+        {
+            vec3 sum = normals[z][x];
+            
+            if (x > 0)
+            {
+                sum += normals[z][x - 1] * FALLOUT_RATIO;
+            }
+            if (x < TERRAIN_SIZE - 1)
+            {
+                sum += normals[z][x + 1] * FALLOUT_RATIO;
+            }
+            if (z > 0) 
+            {
+                sum += normals[z - 1][x] * FALLOUT_RATIO;
+            }
+            if (z < TERRAIN_SIZE - 1)
+            {
+                sum += normals[z + 1][x] * FALLOUT_RATIO;
+            }
+            
+            if (length(sum) == 0)
+            {
+                sum = vec3(0.0f, 1.0f, 0.0f);
+            }
+            terrain_normals[z][x] = sum;
         }
     }
     cout << "Finished: generating normals" << endl;
