@@ -7,6 +7,7 @@
 
 #include "cgra_math.hpp"
 #include "opengl.hpp"
+#include "simplex_noise.hpp"
 
 struct vertex {
     int p = 0; // index for point in m_points
@@ -18,34 +19,48 @@ struct triangle {
     vertex v[3]; //requires 3 verticies
 };
 
-int const TERRAIN_SIZE = 600;
-
 class Terrain {
     
 private:
     // Fields
+    int terrain_width;
+    int terrain_length;
+    
+    int x_off;
+    int z_off;
+    int y_off;
+    
+    bool t_display_wire;
+    
     std::string t_texture_filename;     // String for storing texture filename
     GLuint t_texture;                   // ID of created texture
     std::vector<cgra::vec3> t_points;	// Point list
     std::vector<cgra::vec2> t_uvs;		// Texture Coordinate list
     std::vector<cgra::vec3> t_normals;	// Normal list
     std::vector<triangle> t_triangles;	// Triangle/Face list
-    GLuint t_displayList;       // ID for Polygon Displaylist
-    float terrain_heights[TERRAIN_SIZE][TERRAIN_SIZE];
-    cgra::vec3 terrain_normals[TERRAIN_SIZE][TERRAIN_SIZE];
+    
+    GLuint t_displaylist;       // ID for Polygon Displaylist
+    GLuint t_displaylist_wire; // ID for Wire Dispalylist
+    
+    std::vector<std::vector<float>> terrain_heights;
+    std::vector<std::vector<cgra::vec3>> terrain_normals;
+    std::vector<std::vector<cgra::vec3>> terrain_colors;
+    
     
     // Methods
     void readTex(std::string);
     void generateHeights();
     void generateNormals();
+    void generateColors();
     void createDisplayList();
-    float randomFloat(float, float);
+    void createDisplayListWire();
     
 public:
-    Terrain(std::string);
+    Terrain(std::string, int seed);
     ~Terrain();
     
     void setupTerrain();
     void renderTerrain();
+    void toggleWireMode();
     
 };

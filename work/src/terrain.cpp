@@ -14,8 +14,21 @@
 using namespace std;
 using namespace cgra;
 
-Terrain::Terrain(string textureFilename) {
+SimplexNoise simplex_noise = SimplexNoise();
+
+Terrain::Terrain(string textureFilename, int seed) {
+    
+    simplex_noise.setSeed(seed);
     t_texture_filename = textureFilename;
+    
+    terrain_length = 100;
+    terrain_width = 100;
+    
+    x_off = (int)terrain_width/2;
+    z_off = (int)terrain_length/2;
+    
+    y_off = 2;
+    t_display_wire = false;
 }
 
 Terrain::~Terrain() {}
@@ -38,31 +51,37 @@ void Terrain::readTex(string filename) {
     gluBuild2DMipmaps(GL_TEXTURE_2D, 3, tex.w, tex.h, tex.glFormat(), GL_UNSIGNED_BYTE, tex.dataPointer());
 }
 
-float Terrain::randomFloat(float a,  float b) {
-    float random = ((float) rand()) / (float) RAND_MAX;
-    float diff = b - a;
-    float r = random * diff;
-    return a + r;
+void Terrain::generateColors() {
+    for (int z = 0; z < terrain_length; z++) {
+        //terrain_normals[z] = new vec3 [terrain_width];
+        vector<vec3> row;
+        for (int x = 0; x < terrain_width; x ++) {
+            if (terrain_heights[z][x] <= 0.4) {
+                row.push_back(vec3(0.2, 0.58, 0.82));
+            } else if (terrain_heights[z][x] > 0.4) {
+                row.push_back(vec3(0.57, 0.82, 0.2));
+            }
+            
+        }
+        terrain_colors.push_back(row);
+    }
+
 }
 
-// TODO: generate heights based on perlin noise funciton
 void Terrain::generateHeights() {
     cout << "Started: generating heights" << endl;
-    for (int z = 0;  z < TERRAIN_SIZE; z++) {
-        for (int x = 0; x < TERRAIN_SIZE; x++) {
-            terrain_heights[x][z] = randomFloat(-1.0f, 1.0f);
-        }
-    }
+    terrain_heights = simplex_noise.generateNoiseMap(terrain_length, terrain_width, 30, 3, 0.5, 2);
     cout << "Finished: generating heights" << endl;
 }
-// TODO: Find method of per vertice normal generation, may require heights to be genrated first.
+
+// Normal computation method sourced from: https://medium.com/@SoumitraSaxena/terrain-generation-from-a-heightmap-cccf50e961a9
 void Terrain::generateNormals() {
     cout << "Started: generating normals" << endl;
-    vec3 normals[TERRAIN_SIZE][TERRAIN_SIZE];
-    for(int z = 0; z < TERRAIN_SIZE; z++)
-    {
-        for(int x = 0; x < TERRAIN_SIZE; x++)
-        {
+
+    for (int z = 0; z < terrain_length; z++) {
+        //terrain_normals[z] = new vec3 [terrain_width];
+        vector<vec3> row;
+        for (int x = 0; x < terrain_width; x ++) {
             vec3 sum(0.0f, 0.0f, 0.0f);
             
             vec3 out;
@@ -71,7 +90,7 @@ void Terrain::generateNormals() {
                 out = vec3(0.0f, terrain_heights[z - 1][x] - terrain_heights[z][x], -1.0f);
             }
             vec3 in;
-            if (z < TERRAIN_SIZE - 1)
+            if (z < terrain_length - 1)
             {
                 in = vec3(0.0f, terrain_heights[z + 1][x] - terrain_heights[z][x], 1.0f);
             }
@@ -81,7 +100,7 @@ void Terrain::generateNormals() {
                 left = vec3(-1.0f, terrain_heights[z][x - 1] - terrain_heights[z][x], 0.0f);
             }
             vec3 right;
-            if (x < TERRAIN_SIZE - 1)
+            if (x < terrain_width - 1)
             {
                 right = vec3(1.0f, terrain_heights[z][x + 1] - terrain_heights[z][x], 0.0f);
             }
@@ -90,91 +109,99 @@ void Terrain::generateNormals() {
             {
                 sum += normalize(cross(out, left));
             }
-            if (x > 0 && z < TERRAIN_SIZE - 1)
+            if (x > 0 && z < terrain_length - 1)
             {
                 sum += normalize(cross(left, in));
             }
-            if (x < TERRAIN_SIZE - 1 && z < TERRAIN_SIZE - 1)
+            if (x < terrain_width - 1 && z < terrain_length - 1)
             {
                 sum += normalize(cross(in, right));
             }
-            if (x < TERRAIN_SIZE - 1 && z > 0)
+            if (x < terrain_width - 1 && z > 0)
             {
                 sum += normalize(cross(right, out));
             }
             
-            normals[z][x] = sum;
+            row.push_back(sum);
+            
         }
+        terrain_normals.push_back(row);
     }
     
-    //Smooth out the normals
-    const float FALLOUT_RATIO = 0.5f;
-    for(int z = 0; z < TERRAIN_SIZE; z++)
-    {
-        for(int x = 0; x < TERRAIN_SIZE; x++)
-        {
-            vec3 sum = normals[z][x];
-            
-            if (x > 0)
-            {
-                sum += normals[z][x - 1] * FALLOUT_RATIO;
-            }
-            if (x < TERRAIN_SIZE - 1)
-            {
-                sum += normals[z][x + 1] * FALLOUT_RATIO;
-            }
-            if (z > 0) 
-            {
-                sum += normals[z - 1][x] * FALLOUT_RATIO;
-            }
-            if (z < TERRAIN_SIZE - 1)
-            {
-                sum += normals[z + 1][x] * FALLOUT_RATIO;
-            }
-            
-            if (length(sum) == 0)
-            {
-                sum = vec3(0.0f, 1.0f, 0.0f);
-            }
-            terrain_normals[z][x] = sum;
-        }
-    }
-    cout << "Finished: generating normals" << endl;
+    cout << "Finished: generating normal" << endl;
 }
 
 void Terrain::createDisplayList() {
-    cout << "Started: creating display list" << endl;
-    if (t_displayList) glDeleteLists(t_displayList, 1);
-    t_displayList = glGenLists(1);
     
-    glNewList(t_displayList, GL_COMPILE);
+    cout << "Started: creating display list" << endl;
+    if (t_displaylist) glDeleteLists(t_displaylist, 1);
+    t_displaylist = glGenLists(1);
+    
+    glNewList(t_displaylist, GL_COMPILE);
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glBegin(GL_TRIANGLE_STRIP);
-    for (int z = 0; z < TERRAIN_SIZE - 1; z++) { // Length
-        for (int x = 0; x < TERRAIN_SIZE; x++) { // Width
-            vec3 normal = terrain_normals[x][z];
+    for (int z = 0; z < terrain_length - 1; z++) { // Length
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int x = 0; x < terrain_width; x++) { // Width
+            vec3 normal = terrain_normals[z][x];
+            vec3 color = terrain_colors[z][x];
             glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3f(x, terrain_heights[x][z], z);
+            glColor3f(color.r, color.g, color.b);
+            glVertex3f(x-x_off, terrain_heights[z][x]*10-y_off, z-z_off);
             
-            normal = terrain_normals[x][z+1];
+            normal = terrain_normals[z+1][x];
+            color = terrain_colors[z+1][x];
             glNormal3f(normal.x, normal.y, normal.z);
-            glVertex3f(x, terrain_heights[x][z+1], z+1);
+            glColor3f(color.r, color.g, color.b);
+            glVertex3f(x-x_off, terrain_heights[z+1][x]*10-y_off, z+1-z_off); //TODO: Make these -10 offsets work for dynamic terrain sizes
         }
+         glEnd();
     }
-    glEnd();
     glEndList();
     cout << "Finished: creating display list" << endl;
 }
+
+void Terrain::createDisplayListWire() {
+    cout << "Started: creating display list" << endl;
+    if (t_displaylist_wire) glDeleteLists(t_displaylist_wire, 1);
+    t_displaylist_wire = glGenLists(1);
+    
+    glNewList(t_displaylist_wire, GL_COMPILE);
+    
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (int z = 0; z < terrain_length - 1; z++) { // Length
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int x = 0; x < terrain_width; x++) { // Width
+            vec3 normal = terrain_normals[z][x];
+            glNormal3f(normal.x, normal.y, normal.z);
+            glVertex3f(x-x_off, terrain_heights[z][x]*10-y_off, z-z_off);
+            
+            normal = terrain_normals[z+1][x];
+            glNormal3f(normal.x, normal.y, normal.z);
+            glVertex3f(x-x_off, terrain_heights[z+1][x]*10-y_off, z+1-z_off); //TODO: Make these -10 offsets work for dynamic terrain sizes
+        }
+        glEnd();
+    }
+    glEndList();
+    cout << "Finished: creating display list" << endl;
+}
+
+void Terrain::toggleWireMode() {
+    t_display_wire = !t_display_wire;
+    cout << "Wire mode state: " << t_display_wire << endl;
+}
+
 void Terrain::setupTerrain() {
     //readTex(t_texture_filename);
     generateHeights();
     generateNormals();
+    generateColors();
     createDisplayList();
+    createDisplayListWire();
 }
 
 void Terrain::renderTerrain() {
     glEnable(GL_COLOR_MATERIAL);
-    glColor3f(0.0f, 1.0f,0.0f);
-    glCallList(t_displayList);
+    GLuint displayList = t_display_wire ? t_displaylist_wire : t_displaylist;
+    glCallList(displayList);
 }

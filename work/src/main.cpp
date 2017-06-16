@@ -32,7 +32,7 @@ using namespace cgra;
 //
 GLFWwindow* g_window;
 
-Terrain terrain = Terrain("");
+Terrain terrain = Terrain("./work/res/textures/grass.jpg", 100003);
 
 
 // Projection values
@@ -109,6 +109,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 	// 	<< "action=" << action << "mods=" << mods << endl;
 	// YOUR CODE GOES HERE
     cout << "Key: " << key << ", Scancode: " << scancode << ", Action: " << action << ", Mods: " << mods << endl;
+    if (key == GLFW_KEY_M && action == 0) {
+        cout << "Toggling wire mode" << endl;
+        terrain.toggleWireMode();
+    }
 }
 
 
@@ -137,7 +141,7 @@ void initLight() {
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffintensity);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
     
-    
+    glEnable(GL_LIGHT0);
 }
 
 
