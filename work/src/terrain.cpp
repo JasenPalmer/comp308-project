@@ -27,7 +27,7 @@ Terrain::Terrain(string textureFilename, int seed) {
     x_off = (int)terrain_width/2;
     z_off = (int)terrain_length/2;
     
-    y_off = 2;
+    y_off = -2;
     t_display_wire = false;
 }
 
@@ -56,10 +56,25 @@ void Terrain::generateColors() {
         //terrain_normals[z] = new vec3 [terrain_width];
         vector<vec3> row;
         for (int x = 0; x < terrain_width; x ++) {
-            if (terrain_heights[z][x] <= 0.4) {
+            float terrainHeight = terrain_heights[z][x];
+            if (terrainHeight < 0.2) {
+                //deep water
+                row.push_back(vec3(0.05, 0.42, 0.71));
+            } else if (terrainHeight < 0.4) {
+                // shallow water
                 row.push_back(vec3(0.2, 0.58, 0.82));
-            } else if (terrain_heights[z][x] > 0.4) {
+            } else if (terrainHeight < 0.45) {
+                // sand
+                row.push_back(vec3(0.96, 0.88, 0.47));
+            } else if (terrainHeight < 0.65) {
+                //grass
                 row.push_back(vec3(0.57, 0.82, 0.2));
+            } else if (terrainHeight < 0.9) {
+                // rock
+                row.push_back(vec3(0.36, 0.36, 0.36));
+            } else {
+                // snow
+                row.push_back(vec3(1, 1, 1));
             }
             
         }
@@ -131,6 +146,17 @@ void Terrain::generateNormals() {
     cout << "Finished: generating normal" << endl;
 }
 
+float Terrain::getHeight(int z, int x) {
+    float height = terrain_heights[z][x];
+    height = heightModifier(height);
+    
+    return height - y_off;
+}
+
+float Terrain::heightModifier(float height) {
+    return exp(height*6-6) * height_multiplier;
+}
+
 void Terrain::createDisplayList() {
     
     cout << "Started: creating display list" << endl;
@@ -147,13 +173,13 @@ void Terrain::createDisplayList() {
             vec3 color = terrain_colors[z][x];
             glNormal3f(normal.x, normal.y, normal.z);
             glColor3f(color.r, color.g, color.b);
-            glVertex3f(x-x_off, terrain_heights[z][x]*10-y_off, z-z_off);
+            glVertex3f(x-x_off, getHeight(z, x), z-z_off);
             
             normal = terrain_normals[z+1][x];
             color = terrain_colors[z+1][x];
             glNormal3f(normal.x, normal.y, normal.z);
             glColor3f(color.r, color.g, color.b);
-            glVertex3f(x-x_off, terrain_heights[z+1][x]*10-y_off, z+1-z_off); //TODO: Make these -10 offsets work for dynamic terrain sizes
+            glVertex3f(x-x_off, getHeight(z+1, x), z+1-z_off);
         }
          glEnd();
     }

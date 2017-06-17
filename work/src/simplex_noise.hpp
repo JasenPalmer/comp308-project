@@ -15,7 +15,7 @@ private:
     int grad3[12][3] = {{1,1,0},{-1,1,0},{1,-1,0},{-1,-1,0}, {1,0,1},{-1,0,1},{1,0,-1},{-1,0,-1},
         {0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
     
-    int noise_seed;
+    int noise_seed = 0;
     
     float generateNoiseInternal(float sampleZ, float sampleX);
     float randomFloat(float a, float b);

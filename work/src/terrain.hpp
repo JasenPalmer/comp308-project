@@ -30,6 +30,8 @@ private:
     int z_off;
     int y_off;
     
+    float height_multiplier = 10;
+    
     bool t_display_wire;
     
     std::string t_texture_filename;     // String for storing texture filename
@@ -54,6 +56,8 @@ private:
     void generateColors();
     void createDisplayList();
     void createDisplayListWire();
+    float getHeight(int, int);
+    float heightModifier(float);
     
 public:
     Terrain(std::string, int seed);

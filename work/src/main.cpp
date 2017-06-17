@@ -32,7 +32,7 @@ using namespace cgra;
 //
 GLFWwindow* g_window;
 
-Terrain terrain = Terrain("./work/res/textures/grass.jpg", 100003);
+Terrain terrain = Terrain("./work/res/textures/grass.jpg", 3456564); // Maybe set this seed based on a ui field if I have time.
 
 
 // Projection values
@@ -235,7 +235,7 @@ int main(int argc, char **argv) {
 	glfwGetVersion(&glfwMajor, &glfwMinor, &glfwRevision);
 
 	// Create a windowed mode window and its OpenGL context
-	g_window = glfwCreateWindow(640, 480, "Hello World", nullptr, nullptr);
+	g_window = glfwCreateWindow(640, 480, "Jasen and Matt - Envrionment Simulation", nullptr, nullptr);
 	if (!g_window) {
 		cerr << "Error: Could not create GLFW window" << endl;
 		abort(); // Unrecoverable error

@@ -15,8 +15,6 @@ using namespace std;
 using namespace cgra;
 
 SimplexNoise::SimplexNoise() {
-    noise_seed = 100;
-    srand(noise_seed);
 }
 
 SimplexNoise::~SimplexNoise() {
