@@ -12,6 +12,7 @@ SET(headers
 	"simple_image.hpp"
 	"terrain.hpp"
 	"simplex_noise.hpp"
+	"water_tile.hpp"
 )
 
 
@@ -20,6 +21,7 @@ SET(sources
 	"terrain.cpp"
 	"main.cpp"
 	"simplex_noise.cpp"
+	"water_tile.cpp"
 )
 
 # Add executable target and link libraries

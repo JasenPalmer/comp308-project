@@ -23,8 +23,8 @@ class Terrain {
     
 private:
     // Fields
-    int terrain_width = 240;
-    int terrain_length = 240;
+    int terrain_width = 100;
+    int terrain_length = 100;
     
     int x_off;
     int z_off;

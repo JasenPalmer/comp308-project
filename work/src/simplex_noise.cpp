@@ -36,8 +36,8 @@ vector<vec3> SimplexNoise::generateVertices( float scale, int octaves, float per
     use_falloff = falloff;
     vector<vec3> vertices;
     
-    float maxHeight = -MAXFLOAT;
-    float minHeight = MAXFLOAT;
+    float maxHeight = -numeric_limits<float>::max();
+    float minHeight = numeric_limits<float>::max();
     
     vector<vec2> octaveOffsets;
     
