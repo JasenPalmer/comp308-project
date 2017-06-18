@@ -36,7 +36,7 @@ Watertile::Watertile(vec4 pos, vec4 light, GLuint shader, int width) {
 	tileWidth = width;
 
 	viewpos = vec4(0.0, 10.0, 50.0, 0.0);
-	screenDimension = vec2(640, 480);
+	screenDimension = vec2(1280, 720);
 	watercolor = vec4(0.0, 0.3, 0.5, 1.0);
 	distortAmount = 0.001;
 	currentDistort = 1;
@@ -244,7 +244,7 @@ void Watertile::renderWater() {
 
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
 
 	glUseProgram(0);

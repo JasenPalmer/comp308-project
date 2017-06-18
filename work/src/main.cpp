@@ -62,7 +62,7 @@ vec3 g_camera_up = vec3(0.0, 1.0, 0.0);
 
 // light position
 //
-vec4 g_light_pos = vec4(0.0, 100.0, 0.0, 0.0);
+vec4 g_light_pos = vec4(50.0, 100.0, 50.0, 0.0);
 
 // Values and fields to showcase the use of shaders
 // Remove when modifying main.cpp for Assignment 3
@@ -73,7 +73,7 @@ GLuint g_shader = 0;
 GLuint g_waterShader = 0;
 
 // water height
-const float WATER_HEIGHT = 2.0f;
+const float WATER_HEIGHT = 0.5f;
 
 // skytexture
 //
@@ -218,8 +218,9 @@ void initShader() {
 	// To create a shader program we use a helper function
 	// We pass it an array of the types of shaders we want to compile
 	// and the corrosponding locations for the files of each stage
-	g_shader = makeShaderProgramFromFile({GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/shaderDemo.vert", "./work/res/shaders/shaderDemo.frag" });
+	g_shader = makeShaderProgramFromFile({GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/textureShader.vert", "./work/res/shaders/textureShader.frag" });
 	g_waterShader = makeShaderProgramFromFile({ GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/waterShader.vert", "./work/res/shaders/waterShader.frag" });
+
 }
 
 // Updates the cameras position
@@ -265,19 +266,19 @@ void render() {
 	// Grey/Blueish background
 	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	// Enable flags for normal rendering
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
-    terrain.renderTerrain();
+    terrain.renderTerrain(g_shader);
 
 	// Disable flags for cleanup (optional)
 	//glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
 }
 
@@ -374,7 +375,7 @@ int main(int argc, char **argv) {
 	glfwGetVersion(&glfwMajor, &glfwMinor, &glfwRevision);
 
 	// Create a windowed mode window and its OpenGL context
-	g_window = glfwCreateWindow(640, 480, "Jasen and Matt - Envrionment Simulation", nullptr, nullptr);
+	g_window = glfwCreateWindow(1280, 720, "Jasen and Matt - Envrionment Simulation", nullptr, nullptr);
 	if (!g_window) {
 		cerr << "Error: Could not create GLFW window" << endl;
 		abort(); // Unrecoverable error
@@ -472,6 +473,8 @@ int main(int argc, char **argv) {
 			//render water from framebuffers to water quad
 			tiles[i].renderWater();
 		}
+
+
 
 		// Swap front and back buffers
 		glfwSwapBuffers(g_window);

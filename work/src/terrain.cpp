@@ -317,7 +317,7 @@ void Terrain::toggleWireMode() {
 }
 
 void Terrain::setupTerrain() {
-    //readTex(t_texture_filename);
+    readTex(t_texture_filename);
     generateHeights();
     generateColors();
     generateUvs();
@@ -327,19 +327,20 @@ void Terrain::setupTerrain() {
     createDisplayListWire();
 }
 
-void Terrain::renderTerrain() {
+void Terrain::renderTerrain(GLuint shader) {
     //glEnable(GL_COLOR_MATERIAL);
-    glDisable(GL_TEXTURE_2D);
+    //glDisable(GL_TEXTURE_2D);
     GLuint displayList = t_display_wire ? t_displaylist_wire : t_displaylist;
-    glEnable(GL_COLOR_MATERIAL);
-    //glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_TEXTURE_2D);
     // Use Texture as the color
-//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     // Set the location for binding the texture
-   // glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     // Bind the texture
-    //glBindTexture(GL_TEXTURE_2D, t_texture);
-    
+    glBindTexture(GL_TEXTURE_2D, t_texture);
+    glUseProgram(shader);
+    glUniform1i(glGetUniformLocation(shader, "texture0"), 0);
     //glShadeModel(GL_SMOOTH);
     
     glPushMatrix();
@@ -348,4 +349,6 @@ void Terrain::renderTerrain() {
     glPopMatrix();
 
     glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_TEXTURE_2D);
+    glUseProgram(0);
 }

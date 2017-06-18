@@ -69,7 +69,7 @@ public:
     
     void reseedTerrain(int);
     void setupTerrain();
-    void renderTerrain();
+    void renderTerrain(GLuint);
     void toggleWireMode();
     
 };
