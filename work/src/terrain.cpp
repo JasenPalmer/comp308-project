@@ -179,7 +179,7 @@ void Terrain::generateNormals() {
             {
                 sum = vec3(0.0f, 1.0f, 0.0f);
             }
-            t_normals.push_back(sum);
+            t_normals.push_back(normalize(sum));
         }
     }
     
