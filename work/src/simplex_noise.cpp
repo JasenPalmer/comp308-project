@@ -15,10 +15,16 @@ using namespace std;
 using namespace cgra;
 
 SimplexNoise::SimplexNoise() {
+
 }
 
 SimplexNoise::~SimplexNoise() {
     
+}
+
+void SimplexNoise::init(int length, int width) {
+    noise_length = length;
+    noise_width = width;
 }
 
 void SimplexNoise::setSeed(int seed) {
@@ -26,22 +32,25 @@ void SimplexNoise::setSeed(int seed) {
     srand(seed);
 }
 
-vector<vector<float>> SimplexNoise::generateNoiseMap(int length, int width, float scale, int octaves, float persistence, float lacunarity) {
-    vector<vector<float>> noiseMap;
+vector<vec3> SimplexNoise::generateVertices( float scale, int octaves, float persistence, float lacunarity, bool falloff) {
+    use_falloff = falloff;
+    vector<vec3> vertices;
     
     float maxHeight = -MAXFLOAT;
     float minHeight = MAXFLOAT;
     
     vector<vec2> octaveOffsets;
+    
+    generateFalloffMap();
     for (int i  = 0; i < octaves; i ++){
         float offsetX = randomFloat(-1000000, 1000000);
         float offsetY = randomFloat(-1000000, 1000000);
         octaveOffsets.push_back(vec2(offsetX, offsetY));
     }
     
-    for (int z = 0; z < length; z++) {
-        vector<float> row;
-        for (int x = 0; x < width; x++) {
+    for (int z = 0; z < noise_length; z++) {
+        //vector<float> row;
+        for (int x = 0; x < noise_width; x++) {
             
             float frequency = 1;
             float amplitude = 1;
@@ -62,23 +71,46 @@ vector<vector<float>> SimplexNoise::generateNoiseMap(int length, int width, floa
             } else if (height < minHeight) {
                 minHeight = height;
             }
-            row.push_back(height);
+            vertices.push_back(vec3(x, height, z));
         }
-        noiseMap.push_back(row);
     }
 
     cout << "Max Height: " << maxHeight << endl;
     cout << "Min Height: " << minHeight << endl;
     
-    for (int z = 0; z < length; z++) {
-        for (int x = 0; x < width; x++) {
-            //cout << "Non-normalised Height: " << noiseMap[z][x] << endl;
-            noiseMap[z][x] = (noiseMap[z][x] - minHeight) / (maxHeight - minHeight);
-            //cout << "Normalised Height: " << noiseMap[z][x] << endl;
+    for (int i = 0; i < noise_length*noise_width; i++) {
+        // Normalise the height
+        float height = (vertices[i].y - minHeight) / (maxHeight - minHeight);
+        if (use_falloff) {
+            // If using falloff, subtract the falloff value from the height and reclamp.
+            height = clamp(height - falloff_map[i], 1, 0);
         }
+        vertices[i].y = height;
     }
 
-    return noiseMap;
+    return vertices;
+}
+
+void SimplexNoise::setFalloff(bool falloff) {
+    use_falloff = falloff;
+}
+
+void SimplexNoise::generateFalloffMap() {
+    falloff_map.clear();
+    cout << "Started: generating falloff map" << endl;
+    for (int z = 0; z < noise_length; z++ ) {
+        for (int x=0; x < noise_width; x++) {
+            float zFrac = z / (float)noise_length * 2 -1;
+            float xFrac = x / (float)noise_width * 2 -1;
+            
+            float value = max(abs(zFrac), abs(xFrac));
+            value = falloffModifier(value);
+            //cout << value << ", ";
+            falloff_map.push_back(value);
+        }
+        //cout << endl;
+    }
+    cout << "Finished: generating falloff map" << endl;
 }
 
 // 2d Simplex Noise Implementation sourced from: http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
@@ -139,8 +171,17 @@ float SimplexNoise::generateNoiseInternal(float zin, float xin) {
     // Add contributions from each corner to get the final noise value. // The result is scaled to return values in the interval [-1,1].
     return 70.0 * (n0 + n1 + n2);
 }
-  
 
+float SimplexNoise::falloffModifier(float falloff) {
+    // TODO: Modify falloff here
+    float a = 4;
+    float b = 2.2;
+    return (pow(falloff, a)) / (pow(falloff, a) + pow((b - b*falloff), a));
+}
+
+float SimplexNoise::clamp(float value, float upper, float lower) {
+    return min(upper, max(value, lower));
+}
     
 float SimplexNoise::dot(int g[], float x, float y) {
     return g[0]*x + g[1]*y;

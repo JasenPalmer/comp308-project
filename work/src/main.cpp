@@ -32,7 +32,9 @@ using namespace cgra;
 //
 GLFWwindow* g_window;
 
-Terrain terrain = Terrain("./work/res/textures/grass.jpg", 3456564); // Maybe set this seed based on a ui field if I have time.
+
+int base_seed = 9323130;
+Terrain terrain = Terrain("./work/res/textures/grass.jpg", base_seed); // Maybe set this seed based on a ui field if I have time.
 
 
 // Projection values
@@ -112,7 +114,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_M && action == 0) {
         cout << "Toggling wire mode" << endl;
         terrain.toggleWireMode();
-    }
+    } else if (key == GLFW_KEY_K && action == 0) {
+        cout << "Reseeding terrain" << endl;
+        terrain.reseedTerrain(time(NULL));
+     }
 }
 
 
@@ -132,7 +137,7 @@ void initLight() {
     // Basic Light - GL_LIGHT_0
 	float direction[] = { 0.0f, 0.0f, 1.0f, 0.0f };
 	float diffintensity[] = { 0.7f, 0.7f, 0.7f, 1.0f };
-	float ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	float ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
     float pos[] = {0.0, 1.0, 0.0};
     float spot_dir[] = {0.0, 1.0, 0.0};
     float specular[] = {1.0, 1.0, 1.0, 1.0};

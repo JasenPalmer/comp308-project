@@ -23,14 +23,14 @@ class Terrain {
     
 private:
     // Fields
-    int terrain_width;
-    int terrain_length;
+    int terrain_width = 240;
+    int terrain_length = 240;
     
     int x_off;
     int z_off;
     int y_off;
     
-    float height_multiplier = 10;
+    float height_multiplier = 12;
     
     bool t_display_wire;
     
@@ -38,6 +38,7 @@ private:
     GLuint t_texture;                   // ID of created texture
     std::vector<cgra::vec3> t_points;	// Point list
     std::vector<cgra::vec2> t_uvs;		// Texture Coordinate list
+    std::vector<cgra::vec3> t_colors;   // Color Coordinate list
     std::vector<cgra::vec3> t_normals;	// Normal list
     std::vector<triangle> t_triangles;	// Triangle/Face list
     
@@ -53,16 +54,20 @@ private:
     void readTex(std::string);
     void generateHeights();
     void generateNormals();
+    void generateUvs();
     void generateColors();
+    void generateTriangles();
     void createDisplayList();
     void createDisplayListWire();
     float getHeight(int, int);
     float heightModifier(float);
+    cgra::vec3 getTriangleColor (triangle);
     
 public:
     Terrain(std::string, int seed);
     ~Terrain();
     
+    void reseedTerrain(int);
     void setupTerrain();
     void renderTerrain();
     void toggleWireMode();
