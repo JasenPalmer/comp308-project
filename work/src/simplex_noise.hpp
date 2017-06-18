@@ -16,16 +16,26 @@ private:
         {0,1,1},{0,-1,1},{0,1,-1},{0,-1,-1}};
     
     int noise_seed = 0;
+    bool use_falloff = false;
     
+    int noise_length;
+    int noise_width;
+    std::vector<float> falloff_map;       // Falloff map for noise
+    
+    
+    void generateFalloffMap();
     float generateNoiseInternal(float sampleZ, float sampleX);
     float randomFloat(float a, float b);
     int perm (int i);
     float dot(int g[], float x, float y);
+    float clamp(float, float, float);
+    float falloffModifier(float);
     
 public:
     SimplexNoise();
     ~SimplexNoise();
+    void init(int length, int width);
     void setSeed(int seed);
-    std::vector<std::vector<float>> generateNoiseMap (int length, int width, float scale, int octaves, float persistence, float lacunarity);
-    
+    std::vector<cgra::vec3> generateVertices (float scale, int octaves, float persistence, float lacunarity, bool falloff);
+    void setFalloff (bool);    
 };
