@@ -1,7 +1,11 @@
 #version 120
 
+uniform float maxHeight;
+uniform float minHeight;
+
 varying vec3 vNormal;
-varying vec3 vPosition; 
+varying vec3 vPosition;
+varying float height;
 
 void main() {
 	
@@ -17,9 +21,25 @@ void main() {
 	Idiff = clamp(Idiff, 0.0, 1.0);     
 
 	// calculate Specular Term:
-	vec4 Ispec = gl_FrontLightProduct[0].specular 
-	            * pow(max(dot(R,E),0.0),0.3*gl_FrontMaterial.shininess);
-	Ispec = clamp(Ispec, 0.0, 1.0); 
-	// write Total Color:  
-	gl_FragColor = gl_FrontLightModelProduct.sceneColor + Iamb + Idiff + Ispec; 
+	vec4 Ispec = gl_FrontLightProduct[0].specular * pow(max(dot(R,E),0.0),0.3*gl_FrontMaterial.shininess);
+	Ispec = clamp(Ispec, 0.0, 1.0);
+    
+    float scaledHeight = ( (height-minHeight) / (maxHeight-minHeight) );
+	// write Total Color:
+    vec3 color; // Sand
+    
+    if (scaledHeight < 0.1) {
+        // sand
+        color = vec3(0.96, 0.88, 0.47);
+    } else if (scaledHeight < 0.5) {
+        //grass
+        color = vec3(0.57, 0.82, 0.2);
+    } else if (scaledHeight < 0.9) {
+        // rock
+        color = vec3(0.36, 0.36, 0.36);
+    } else {
+        // snow
+        color = vec3(1, 1, 1);
+    }
+    gl_FragColor = vec4(color, 1); //gl_FrontLightModelProduct.sceneColor + Iamb + Idiff + Ispec;
 }

@@ -30,7 +30,10 @@ private:
     int z_off;
     int y_off;
     
-    float height_multiplier = 12;
+    float height_multiplier = 15;
+    
+    float max_height;
+    float min_Height;
     
     bool t_display_wire;
     

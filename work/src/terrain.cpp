@@ -243,6 +243,9 @@ vec3 Terrain::getTriangleColor(triangle t) {
 
 void Terrain::createDisplayList() {
     cout << "Started: creating display list" << endl;
+    max_height = numeric_limits<float>::min();
+    min_Height = numeric_limits<float>::max();
+    
     if (t_displaylist) glDeleteLists(t_displaylist, 1);
     t_displaylist = glGenLists(1);
 
@@ -263,6 +266,13 @@ void Terrain::createDisplayList() {
                 vec2 uv = t_uvs[v.t];
 
                 float height = heightModifier(point.y);
+                if (height > max_height) {
+                    max_height = height;
+                }
+                if (height < min_Height) {
+                    min_Height = height;
+                }
+                
                 glColor3f(color.r, color.g, color.b);
                 glNormal3f(normal.x, normal.y, normal.z);
                 glTexCoord2f(uv.x*100, uv.y*100);
@@ -331,17 +341,19 @@ void Terrain::renderTerrain(GLuint shader) {
     //glEnable(GL_COLOR_MATERIAL);
     //glDisable(GL_TEXTURE_2D);
     GLuint displayList = t_display_wire ? t_displaylist_wire : t_displaylist;
-    //glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_COLOR_MATERIAL);
+    //glEnable(GL_TEXTURE_2D);
     // Use Texture as the color
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     // Set the location for binding the texture
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     // Bind the texture
-    glBindTexture(GL_TEXTURE_2D, t_texture);
+    //glBindTexture(GL_TEXTURE_2D, t_texture);
     glUseProgram(shader);
-    glUniform1i(glGetUniformLocation(shader, "texture0"), 0);
-    //glShadeModel(GL_SMOOTH);
+    glUniform1f(glGetUniformLocation(shader, "maxHeight"), max_height);
+    glUniform1f(glGetUniformLocation(shader, "minHeight"), min_Height);
+    //glUniform1i(glGetUniformLocation(shader, "texture0"), 0);
+    glShadeModel(GL_SMOOTH);
     
     glPushMatrix();
     glTranslatef(x_off, y_off, z_off);
