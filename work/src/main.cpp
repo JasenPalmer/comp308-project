@@ -34,7 +34,7 @@ using namespace cgra;
 GLFWwindow* g_window;
 
 
-int base_seed = 9323130;
+int base_seed = 1497779637;
 Terrain terrain = Terrain("./work/res/textures/grass.jpg", base_seed); // Maybe set this seed based on a ui field if I have time.
 
 
@@ -62,7 +62,7 @@ vec3 g_camera_up = vec3(0.0, 1.0, 0.0);
 
 // light position
 //
-vec4 g_light_pos = vec4(50.0, 100.0, 50.0, 0.0);
+vec4 g_light_pos = vec4(50.0, 100.0, 50.0, 1.0);
 
 // Values and fields to showcase the use of shaders
 // Remove when modifying main.cpp for Assignment 3
@@ -181,7 +181,9 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
         terrain.toggleWireMode();
     } else if (key == GLFW_KEY_K && action == 0) {
         cout << "Reseeding terrain" << endl;
-        terrain.reseedTerrain(time(NULL));
+        int seed = time(NULL);
+        cout << "New Seed: " << seed << endl;
+        terrain.reseedTerrain(seed);
      }
 }
 
@@ -218,7 +220,7 @@ void initShader() {
 	// To create a shader program we use a helper function
 	// We pass it an array of the types of shaders we want to compile
 	// and the corrosponding locations for the files of each stage
-	g_shader = makeShaderProgramFromFile({GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/textureShader.vert", "./work/res/shaders/textureShader.frag" });
+	g_shader = makeShaderProgramFromFile({GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/materialShader.vert", "./work/res/shaders/materialShader.frag" });
 	g_waterShader = makeShaderProgramFromFile({ GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/waterShader.vert", "./work/res/shaders/waterShader.frag" });
 
 }
@@ -443,37 +445,37 @@ int main(int argc, char **argv) {
 
 		setupCamera(width, height);
 
-		for (int i = 0; i < tileWidth; i++) {
-			for (int j = 0; j < tileWidth; j++) {
-				tiles[tileWidth*i + j].setCameraPos(g_camera_position);
-
-				//set clip plane for reflection
-				double clipPlane[4] = { 0.0, 1.0, 0.0, -tiles[tileWidth*i + j].getWaterPosition().y };
-
-				//render reflection to reflection bufer
-				GLuint reflBuf = tiles[tileWidth *i + j].getReflectionBuffer();
-				GLuint reflTex = tiles[tileWidth*i + j].getReflectionTexture();
-				renderToBuffer(tiles[tileWidth*i + j], reflBuf, reflTex, clipPlane, true);
-
-				//update clip plane for refraction
-				clipPlane[1] = -1.0;
-				clipPlane[3] = tiles[tileWidth*i + j].getWaterPosition().y;
-
-				//render refraction to refraction buffer
-				GLuint refrBuf = tiles[tileWidth*i + j].getRefractionBuffer();
-				GLuint refrTex = tiles[tileWidth*i + j].getRefractionTexture();
-				renderToBuffer(tiles[tileWidth*i + j], refrBuf, refrTex, clipPlane, false);
-			}
-		}
-
+        for (int i = 0; i < tileWidth; i++) {
+            for (int j = 0; j < tileWidth; j++) {
+                tiles[tileWidth*i + j].setCameraPos(g_camera_position);
+                
+                //set clip plane for reflection
+                double clipPlane[4] = { 0.0, 1.0, 0.0, -tiles[tileWidth*i + j].getWaterPosition().y };
+                
+                //render reflection to reflection bufer
+                GLuint reflBuf = tiles[tileWidth *i + j].getReflectionBuffer();
+                GLuint reflTex = tiles[tileWidth*i + j].getReflectionTexture();
+                renderToBuffer(tiles[tileWidth*i + j], reflBuf, reflTex, clipPlane, true);
+                
+                //update clip plane for refraction
+                clipPlane[1] = -1.0;
+                clipPlane[3] = tiles[tileWidth*i + j].getWaterPosition().y;
+                
+                //render refraction to refraction buffer
+                GLuint refrBuf = tiles[tileWidth*i + j].getRefractionBuffer();
+                GLuint refrTex = tiles[tileWidth*i + j].getRefractionTexture();
+                renderToBuffer(tiles[tileWidth*i + j], refrBuf, refrTex, clipPlane, false);
+            }
+        }
+        
 		// Main Render
 		render();
 
-		for (int i = 0; i < pow(tileWidth, 2); i++) {
-			//render water from framebuffers to water quad
-			tiles[i].renderWater();
-		}
-
+        for (int i = 0; i < pow(tileWidth, 2); i++) {
+            //render water from framebuffers to water quad
+            tiles[i].renderWater();
+        }
+        
 
 
 		// Swap front and back buffers

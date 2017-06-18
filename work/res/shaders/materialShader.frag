@@ -27,19 +27,21 @@ void main() {
     float scaledHeight = ( (height-minHeight) / (maxHeight-minHeight) );
 	// write Total Color:
     vec3 color; // Sand
+    float lightFactor = dot(vNormal,L);
     
     if (scaledHeight < 0.1) {
         // sand
-        color = vec3(0.96, 0.88, 0.47);
+        color = vec3(0.96, 0.88, 0.47) * lightFactor;
     } else if (scaledHeight < 0.5) {
         //grass
-        color = vec3(0.57, 0.82, 0.2);
+        color = vec3(0.57, 0.82, 0.2) * lightFactor;
     } else if (scaledHeight < 0.9) {
         // rock
-        color = vec3(0.36, 0.36, 0.36);
+        color = vec3(0.36, 0.36, 0.36) * lightFactor;
     } else {
         // snow
-        color = vec3(1, 1, 1);
+        color = vec3(1, 1, 1) * lightFactor;
     }
-    gl_FragColor = vec4(color, 1); //gl_FrontLightModelProduct.sceneColor + Iamb + Idiff + Ispec;
+    //gl_FragColor = gl_FrontLightModelProduct.sceneColor + vec4(color, 1) + Iamb + Idiff + Ispec;
+    gl_FragColor = vec4(color, 1);
 }

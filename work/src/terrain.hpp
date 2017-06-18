@@ -30,7 +30,7 @@ private:
     int z_off;
     int y_off;
     
-    float height_multiplier = 15;
+    float height_multiplier = 12;
     
     float max_height;
     float min_Height;

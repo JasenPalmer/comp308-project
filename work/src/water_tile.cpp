@@ -244,7 +244,7 @@ void Watertile::renderWater() {
 
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
 
 	glUseProgram(0);

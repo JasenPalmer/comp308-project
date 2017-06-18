@@ -79,7 +79,7 @@ void Terrain::generateColors() {
 void Terrain::generateHeights() {
     t_points.clear();
     cout << "Started: generating heights" << endl;
-    t_points = simplex_noise.generateVertices(70, 3, 0.5, 2, true);
+    t_points = simplex_noise.generateVertices(40, 4, 0.4, 2, true);
     cout << "Finished: generating heights" << endl;
 }
 
@@ -220,7 +220,7 @@ float Terrain::getHeight(int z, int x) {
 }
 
 float Terrain::heightModifier(float height) {
-    height = exp(height*4-4) * height_multiplier;
+    height = exp(height*6-6) * height_multiplier;
     return height;
 }
 
@@ -304,9 +304,8 @@ void Terrain::createDisplayListWire() {
             vec3 normal = t_normals[v.n];
             float height = heightModifier(point.y);
             
-            glColor3f(color.r, color.g, color.b);
+            glColor3f(0.0, 1.0, 0.0);
             glNormal3f(normal.x, normal.y, normal.z);
-            
             glVertex3f(point.x, height, point.z);
         }
     }
