@@ -21,13 +21,15 @@ void main() {
 	Idiff = clamp(Idiff, 0.0, 1.0);     
 
 	// calculate Specular Term:
-	vec4 Ispec = gl_FrontLightProduct[0].specular * pow(max(dot(R,E),0.0),0.3*gl_FrontMaterial.shininess);
+	vec4 Ispec = gl_FrontLightProduct[0].specular * pow(max(dot(R,E),0.0),0.3*3);
 	Ispec = clamp(Ispec, 0.0, 1.0);
     
     float scaledHeight = ( (height-minHeight) / (maxHeight-minHeight) );
 	// write Total Color:
     vec3 color; // Sand
     float lightFactor = dot(vNormal,L);
+
+    lightFactor *= 2;
     
     if (scaledHeight < 0.1) {
         // sand
@@ -43,5 +45,5 @@ void main() {
         color = vec3(1, 1, 1) * lightFactor;
     }
     //gl_FragColor = gl_FrontLightModelProduct.sceneColor + vec4(color, 1) + Iamb + Idiff + Ispec;
-    gl_FragColor = vec4(color, 1);
+    gl_FragColor = vec4(color, 1) + Ispec;
 }

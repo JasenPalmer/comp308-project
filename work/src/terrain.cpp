@@ -99,6 +99,8 @@ void Terrain::generateUvs() {
 void Terrain::generateNormals() {
     t_normals.clear();
     cout << "Started: generating normals" << endl;
+	// const int tl = 100;
+	// const int tw = 100;
     vec3 normals[terrain_length][terrain_width];
     
     for (int z = 0; z < terrain_length; z++) {

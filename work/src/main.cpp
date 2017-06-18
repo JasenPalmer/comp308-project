@@ -49,20 +49,20 @@ float g_zfar = 1000.0;
 //
 bool g_leftMouseDown = false;
 vec2 g_mousePosition;
-float g_pitch = 60;
-float g_yaw = 0;
+float g_pitch = 15;
+float g_yaw = -45;
 float g_zoom = 1.0;
 
 //camera position
 //
-float distToCamera = 100.0f;
+float distToCamera = 150.0f;
 vec4 g_camera_position = vec4(0.0, 0.0, 25.0, 1.0);
 vec3 g_camera_direction = vec3(0.0, 0.0, 0.0);
 vec3 g_camera_up = vec3(0.0, 1.0, 0.0);
 
 // light position
 //
-vec4 g_light_pos = vec4(50.0, 100.0, 50.0, 1.0);
+vec4 g_light_pos = vec4(-100.0, 50.0, -100.0, 1.0);
 
 // Values and fields to showcase the use of shaders
 // Remove when modifying main.cpp for Assignment 3
@@ -77,52 +77,10 @@ const float WATER_HEIGHT = 0.5f;
 
 // skytexture
 //
-GLuint g_sky_texture = 0;
+GLuint g_sky_texture[6] = { 0,0,0,0,0,0 };
 
-float skyboxVertices[] = {
-	// positions          
-	-1.0f,  1.0f, -1.0f,
-	-1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-
-	-1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
-
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-
-	-1.0f, -1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
-
-	-1.0f,  1.0f, -1.0f,
-	1.0f,  1.0f, -1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f, -1.0f,
-
-	-1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	1.0f, -1.0f,  1.0f
-};
+bool terrainToggle = true;
+bool waterToggle = true;
 
 
 // Mouse Button callback
@@ -131,8 +89,8 @@ float skyboxVertices[] = {
 void cursorPosCallback(GLFWwindow* win, double xpos, double ypos) {
 	// cout << "Mouse Movement Callback :: xpos=" << xpos << "ypos=" << ypos << endl;
 	if (g_leftMouseDown) {
-		g_yaw -= g_mousePosition.x - xpos;
-		g_pitch -= g_mousePosition.y - ypos;
+		g_yaw -= (g_mousePosition.x - xpos) * 0.3;
+		g_pitch -= (g_mousePosition.y - ypos) * 0.3;
 	}
 	g_mousePosition = vec2(xpos, ypos);
 }
@@ -184,6 +142,10 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
         int seed = time(NULL);
         cout << "New Seed: " << seed << endl;
         terrain.reseedTerrain(seed);
+     }else if(key == GLFW_KEY_T && action == 0) {
+     	terrainToggle = !terrainToggle;
+     }else if(key == GLFW_KEY_W && action == 0) {
+     	waterToggle = !waterToggle;
      }
 }
 
@@ -260,22 +222,23 @@ void setupCamera(int width, int height) {
 		g_camera_up.x, g_camera_up.y, g_camera_up.z);	
 }
 
-
 // Draw function
 //
 void render() {
 
 	// Grey/Blueish background
-	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
+	glClearColor(0.0, 0.75, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	// Enable flags for normal rendering
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
-    terrain.renderTerrain(g_shader);
+	if(terrainToggle) {
+		terrain.renderTerrain(g_shader);
+	} 
 
 	// Disable flags for cleanup (optional)
 	//glDisable(GL_TEXTURE_2D);
@@ -290,7 +253,7 @@ void renderToBuffer(Watertile wt, GLuint buffer, GLuint texture, double clipPlan
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
 
-	glClearColor(0.3f, 0.3f, 0.4f, 1.0f);
+	glClearColor(0.0, 0.75, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
@@ -301,9 +264,6 @@ void renderToBuffer(Watertile wt, GLuint buffer, GLuint texture, double clipPlan
 	if (reflection) {
 		glTranslatef(0.0f, 2.0*wt.getWaterPosition().y, 0.0f);
 		glScalef(1.0, -1.0, 1.0);
-	}
-	else {
-		glTranslatef(0.0f, 0.0f, 0.0f);
 	}
 	glEnable(GL_CLIP_PLANE0);
 	glClipPlane(GL_CLIP_PLANE0, clipPlane);
@@ -317,46 +277,33 @@ void renderToBuffer(Watertile wt, GLuint buffer, GLuint texture, double clipPlan
 	glDisable(GL_CULL_FACE);
 }
 
-// void renderSky() {
-// 	glActiveTexture(GL_TEXTURE0);
-// 	glBindTexture(GL_TEXTURE_CUBE_MAP, g_sky_texture);
-// 	glUseProgram(g_shader);
-// 	glUniform1i(glGetUniformLocation(g_shader, "texture0"), 0);
-// 	glEnable(GL_TEXTURE_2D);
-// }
 
-// void loadSky() {
+vector<Watertile> renderRelfectRefract(vector<Watertile> tiles, int tileWidth) {
+	for (int i = 0; i < tileWidth; i++) {
+		for (int j = 0; j < tileWidth; j++) {
+			tiles[tileWidth*i + j].setCameraPos(g_camera_position);
 
-// 	Image tex("./work/res/textures/cubeMap.jpg");
+			//set clip plane for reflection
+			double clipPlane[4] = { 0.0, 1.0, 0.0, -tiles[tileWidth*i + j].getWaterPosition().y };
 
-// 	glActiveTexture(GL_TEXTURE0);
-// 	glGenTextures(1, &g_sky_texture);
-// 	glBindTexture(GL_TEXTURE_CUBE_MAP, g_sky_texture);
+			//render reflection to reflection bufer
+			GLuint reflBuf = tiles[tileWidth *i + j].getReflectionBuffer();
+			GLuint reflTex = tiles[tileWidth*i + j].getReflectionTexture();
+			renderToBuffer(tiles[tileWidth*i + j], reflBuf, reflTex, clipPlane, true);
 
-// 	int imgSize = 512;
-// 	Image posX = tex.subsection(imgSize * 2, imgSize, imgSize, imgSize);
-// 	Image negX = tex.subsection(0, imgSize, imgSize, imgSize);
-// 	Image posY = tex.subsection(imgSize, 0, imgSize, imgSize);
-// 	Image negY = tex.subsection(imgSize, imgSize * 2, imgSize, imgSize);
-// 	Image posZ = tex.subsection(imgSize, imgSize, imgSize, imgSize);
-// 	Image negZ = tex.subsection(imgSize * 3, imgSize, imgSize, imgSize);
+			//update clip plane for refraction
+			clipPlane[1] = -1.0;
+			clipPlane[3] = tiles[tileWidth*i + j].getWaterPosition().y;
 
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, posX.dataPointer());
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, negX.dataPointer());
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, posY.dataPointer());
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, negY.dataPointer());
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, posZ.dataPointer());
-// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, 512, 512, 0, tex.glFormat(), GL_UNSIGNED_BYTE, negZ.dataPointer());
+			//render refraction to refraction buffer
+			GLuint refrBuf = tiles[tileWidth*i + j].getRefractionBuffer();
+			GLuint refrTex = tiles[tileWidth*i + j].getRefractionTexture();
+			renderToBuffer(tiles[tileWidth*i + j], refrBuf, refrTex, clipPlane, false);
+		}
+	}
+	return tiles;
+}
 
-
-// 	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP);
-// 	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP);
-// 	glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP);
-
-// 	glEnable(GL_TEXTURE_GEN_S);
-// 	glEnable(GL_TEXTURE_GEN_T);
-// 	glEnable(GL_TEXTURE_GEN_R);
-// }
 
 // Forward decleration for cleanliness (Ignore)
 void APIENTRY debugCallbackARB(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, GLvoid*);
@@ -377,7 +324,7 @@ int main(int argc, char **argv) {
 	glfwGetVersion(&glfwMajor, &glfwMinor, &glfwRevision);
 
 	// Create a windowed mode window and its OpenGL context
-	g_window = glfwCreateWindow(1280, 720, "Jasen and Matt - Envrionment Simulation", nullptr, nullptr);
+	g_window = glfwCreateWindow(640, 480, "Jasen and Matt - Envrionment Simulation", nullptr, nullptr);
 	if (!g_window) {
 		cerr << "Error: Could not create GLFW window" << endl;
 		abort(); // Unrecoverable error
@@ -428,13 +375,19 @@ int main(int argc, char **argv) {
 
     vector<Watertile> tiles;
 
-	int tileWidth = 10;
-	for (int i = 0; i < tileWidth; i++) {
-		for (int j = 0; j < tileWidth; j++) {
-			tiles.push_back(Watertile(vec4(10 * j - ((10 * (10/2))-10/2), WATER_HEIGHT, 10*i - ((10 * (10 / 2)) - 10 / 2), 0.0f), g_light_pos, g_waterShader, 10));
+	int tileWidth = 20; // width of each tile
+	int waterWidth = 5; // amount of tiles 
+	for (int i = 0; i < waterWidth; i++) {
+		for (int j = 0; j < waterWidth; j++) {
+			float totalLength = tileWidth*waterWidth;
+			float half = totalLength/2;
+			float xoff = (half - ((waterWidth - j) * tileWidth)) + tileWidth/2;
+			float yoff = (half - ((waterWidth - i) * tileWidth)) + tileWidth/2;
+			tiles.push_back(Watertile(vec4(xoff, WATER_HEIGHT,yoff, 0.0f), g_light_pos, g_waterShader, tileWidth));
 		}
 	}
 
+	//loadSky();
 
 	// Loop until the user closes the window
 	while (!glfwWindowShouldClose(g_window)) {
@@ -444,40 +397,21 @@ int main(int argc, char **argv) {
 		glfwGetFramebufferSize(g_window, &width, &height);
 
 		setupCamera(width, height);
+		initLight();
 
-        for (int i = 0; i < tileWidth; i++) {
-            for (int j = 0; j < tileWidth; j++) {
-                tiles[tileWidth*i + j].setCameraPos(g_camera_position);
-                
-                //set clip plane for reflection
-                double clipPlane[4] = { 0.0, 1.0, 0.0, -tiles[tileWidth*i + j].getWaterPosition().y };
-                
-                //render reflection to reflection bufer
-                GLuint reflBuf = tiles[tileWidth *i + j].getReflectionBuffer();
-                GLuint reflTex = tiles[tileWidth*i + j].getReflectionTexture();
-                renderToBuffer(tiles[tileWidth*i + j], reflBuf, reflTex, clipPlane, true);
-                
-                //update clip plane for refraction
-                clipPlane[1] = -1.0;
-                clipPlane[3] = tiles[tileWidth*i + j].getWaterPosition().y;
-                
-                //render refraction to refraction buffer
-                GLuint refrBuf = tiles[tileWidth*i + j].getRefractionBuffer();
-                GLuint refrTex = tiles[tileWidth*i + j].getRefractionTexture();
-                renderToBuffer(tiles[tileWidth*i + j], refrBuf, refrTex, clipPlane, false);
-            }
-        }
-        
+		if(waterToggle) {
+        	tiles = renderRelfectRefract(tiles, waterWidth);
+		}
+
 		// Main Render
 		render();
-
-        for (int i = 0; i < pow(tileWidth, 2); i++) {
-            //render water from framebuffers to water quad
-            tiles[i].renderWater();
-        }
+		if(waterToggle) {
+	        for (int i = 0; i < pow(waterWidth, 2); i++) {
+	            //render water from framebuffers to water quad
+	           tiles[i].renderWater();
+	        }
+    	}
         
-
-
 		// Swap front and back buffers
 		glfwSwapBuffers(g_window);
 
