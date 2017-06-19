@@ -51,7 +51,6 @@ bool g_leftMouseDown = false;
 vec2 g_mousePosition;
 float g_pitch = 15;
 float g_yaw = -45;
-float g_zoom = 1.0;
 
 //camera position
 //
@@ -75,13 +74,14 @@ GLuint g_waterShader = 0;
 // water height
 const float WATER_HEIGHT = 0.5f;
 
-// skytexture
-//
-GLuint g_sky_texture[6] = { 0,0,0,0,0,0 };
-
+//flags for rendering differnt parts of scene
 bool terrainToggle = true;
 bool waterToggle = true;
 
+
+//sky color
+//
+vec4 skyColor = vec4(0.0, 0.75, 1.0, 1.0);
 
 // Mouse Button callback
 // Called for mouse movement event on since the last glfwPollEvents
@@ -103,16 +103,6 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 	// cout << "Mouse Button Callback :: button=" << button << "action=" << action << "mods=" << mods << endl;
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
 		g_leftMouseDown = (action == GLFW_PRESS);
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-		if (g_useShader) {
-			g_useShader = false;
-			cout << "Using the default OpenGL pipeline" << endl;
-		}
-		else {
-			g_useShader = true;
-			cout << "Using a shader" << endl;
-		}
-	}
 }
 
 
@@ -121,7 +111,6 @@ void mouseButtonCallback(GLFWwindow *win, int button, int action, int mods) {
 //
 void scrollCallback(GLFWwindow *win, double xoffset, double yoffset) {
 	// cout << "Scroll Callback :: xoffset=" << xoffset << "yoffset=" << yoffset << endl;
-	g_zoom -= yoffset * g_zoom * 0.2;
 	distToCamera -= yoffset * distToCamera * 0.2;
 }
 
@@ -130,10 +119,6 @@ void scrollCallback(GLFWwindow *win, double xoffset, double yoffset) {
 // Called for every key event on since the last glfwPollEvents
 //
 void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
-	// cout << "Key Callback :: key=" << key << "scancode=" << scancode
-	// 	<< "action=" << action << "mods=" << mods << endl;
-	// YOUR CODE GOES HERE
-    cout << "Key: " << key << ", Scancode: " << scancode << ", Action: " << action << ", Mods: " << mods << endl;
     if (key == GLFW_KEY_M && action == 0) {
         cout << "Toggling wire mode" << endl;
         terrain.toggleWireMode();
@@ -154,15 +139,13 @@ void keyCallback(GLFWwindow *win, int key, int scancode, int action, int mods) {
 // Called for every character input event on since the last glfwPollEvents
 //
 void charCallback(GLFWwindow *win, unsigned int c) {
-	// cout << "Char Callback :: c=" << char(c) << endl;
-	// Not needed for this assignment, but useful to have later on
 }
 
 
 // Sets up where and what the light is
 // Called once on start up
 // 
-void initLight() {
+void updateLight() {
     // Basic Light - GL_LIGHT_0
 	float diffintensity[] = { 0.7f, 0.7f, 0.7f, 1.0f };
 	float ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
@@ -176,15 +159,10 @@ void initLight() {
     glEnable(GL_LIGHT0);
 }
 
-// An example of how to load a shader from a hardcoded location
-//
+//initalise the shader programs
 void initShader() {
-	// To create a shader program we use a helper function
-	// We pass it an array of the types of shaders we want to compile
-	// and the corrosponding locations for the files of each stage
 	g_shader = makeShaderProgramFromFile({GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/materialShader.vert", "./work/res/shaders/materialShader.frag" });
 	g_waterShader = makeShaderProgramFromFile({ GL_VERTEX_SHADER, GL_FRAGMENT_SHADER }, { "./work/res/shaders/waterShader.vert", "./work/res/shaders/waterShader.frag" });
-
 }
 
 // Updates the cameras position
@@ -200,7 +178,6 @@ void updateCameraPos() {
 	g_camera_position.y = vertDist;
 	g_camera_position.z = 0 - offZ;
 }
-
 
 // Sets up where the camera is in the scene
 // 
@@ -219,15 +196,15 @@ void setupCamera(int width, int height) {
 
 	gluLookAt(g_camera_position.x, g_camera_position.y, g_camera_position.z,	//position
 		g_camera_direction.x, g_camera_direction.y, g_camera_direction.z,		//direction
-		g_camera_up.x, g_camera_up.y, g_camera_up.z);	
+		g_camera_up.x, g_camera_up.y, g_camera_up.z);							//up
 }
 
 // Draw function
 //
 void render() {
 
-	// Grey/Blueish background
-	glClearColor(0.0, 0.75, 1.0, 1.0);
+	// set sky color
+	glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -236,48 +213,52 @@ void render() {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
 
+	//only render terrain if terrain toggle set
 	if(terrainToggle) {
 		terrain.renderTerrain(g_shader);
 	} 
-
-	// Disable flags for cleanup (optional)
-	//glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
 	glDisable(GL_NORMALIZE);
 }
 
+//render the scene to the provided texture using the provided framebuffer
+//
 void renderToBuffer(Watertile wt, GLuint buffer, GLuint texture, double clipPlane[4], bool reflection) {
+	//set buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 	glActiveTexture(GL_TEXTURE0);
+	//set texture
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glEnable(GL_TEXTURE_2D);
-
-	glClearColor(0.0, 0.75, 1.0, 1.0);
+	//set cky color and clear scene
+	glClearColor(skyColor.r, skyColor.g, skyColor.b, skyColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	//glEnable(GL_CULL_FACE);
 
 	glPushMatrix();
 	if (reflection) {
+		//translate up so that relfection and scene line up correctly
 		glTranslatef(0.0f, 2.0*wt.getWaterPosition().y, 0.0f);
+		//invert scene for reflection
 		glScalef(1.0, -1.0, 1.0);
 	}
+	//use clip plane to remove veticies that are not wanted in reflection/refraction
 	glEnable(GL_CLIP_PLANE0);
 	glClipPlane(GL_CLIP_PLANE0, clipPlane);
 	render();
 	glDisable(GL_CLIP_PLANE0);
 	glPopMatrix();
 
+	//disable framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LESS);
 	glDisable(GL_CULL_FACE);
 }
 
-
+//render reflection and refraction for all watertiles 
 vector<Watertile> renderRelfectRefract(vector<Watertile> tiles, int tileWidth) {
 	for (int i = 0; i < tileWidth; i++) {
 		for (int j = 0; j < tileWidth; j++) {
@@ -368,17 +349,17 @@ int main(int argc, char **argv) {
 		cout << "GL_ARB_debug_output not available. No worries." << endl;
 	}
 
-	initLight();
+	updateLight();
 	initShader();
 
     terrain.setupTerrain();
 
     vector<Watertile> tiles;
-
 	int tileWidth = 20; // width of each tile
 	int waterWidth = 5; // amount of tiles 
 	for (int i = 0; i < waterWidth; i++) {
 		for (int j = 0; j < waterWidth; j++) {
+			//calculate the position of the tile
 			float totalLength = tileWidth*waterWidth;
 			float half = totalLength/2;
 			float xoff = (half - ((waterWidth - j) * tileWidth)) + tileWidth/2;
@@ -397,7 +378,7 @@ int main(int argc, char **argv) {
 		glfwGetFramebufferSize(g_window, &width, &height);
 
 		setupCamera(width, height);
-		initLight();
+		updateLight();
 
 		if(waterToggle) {
         	tiles = renderRelfectRefract(tiles, waterWidth);
@@ -421,10 +402,6 @@ int main(int argc, char **argv) {
 
 	glfwTerminate();
 }
-
-
-
-
 
 
 //-------------------------------------------------------------

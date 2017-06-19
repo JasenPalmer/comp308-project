@@ -27,7 +27,7 @@ void main(void) {
 	// specular exponent for specular highlight
 	const float specExp = 64.0;
 	// fog exponent (higher = less water fog)
-	const float fogExp = 1000;
+	const float fogExp = 500;
 
 	vec4 lightTS = normalize(toLightV);
 	vec4 viewt = normalize(toViewV);
