@@ -79,7 +79,7 @@ vector<vec3> SimplexNoise::generateVertices( float scale, int octaves, float per
     cout << "Min Height: " << minHeight << endl;
     
     for (int i = 0; i < noise_length*noise_width; i++) {
-        // Normalise the height
+        // Normalise the height between over the max an min height range
         float height = (vertices[i].y - minHeight) / (maxHeight - minHeight);
         if (use_falloff) {
             // If using falloff, subtract the falloff value from the height and reclamp.
