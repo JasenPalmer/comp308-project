@@ -39,18 +39,14 @@ private:
     
     std::string t_texture_filename;     // String for storing texture filename
     GLuint t_texture;                   // ID of created texture
+    
     std::vector<cgra::vec3> t_points;	// Point list
     std::vector<cgra::vec2> t_uvs;		// Texture Coordinate list
-    std::vector<cgra::vec3> t_colors;   // Color Coordinate list
     std::vector<cgra::vec3> t_normals;	// Normal list
     std::vector<triangle> t_triangles;	// Triangle/Face list
     
     GLuint t_displaylist;       // ID for Polygon Displaylist
     GLuint t_displaylist_wire; // ID for Wire Dispalylist
-    
-    std::vector<std::vector<float>> terrain_heights;
-    std::vector<std::vector<cgra::vec3>> terrain_normals;
-    std::vector<std::vector<cgra::vec3>> terrain_colors;
     
     
     // Methods
@@ -58,13 +54,11 @@ private:
     void generateHeights();
     void generateNormals();
     void generateUvs();
-    void generateColors();
     void generateTriangles();
     void createDisplayList();
     void createDisplayListWire();
     float getHeight(int, int);
     float heightModifier(float);
-    cgra::vec3 getTriangleColor (triangle);
     
 public:
     Terrain(std::string, int seed);
