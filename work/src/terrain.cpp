@@ -23,7 +23,7 @@ Terrain::Terrain(string textureFilename, int seed) {
     
     x_off = -(int)terrain_width/2;
     z_off = -(int)terrain_length/2;
-    y_off = -2;
+    y_off = 0;
     
     t_display_wire = false;
 }
@@ -79,7 +79,7 @@ void Terrain::generateColors() {
 void Terrain::generateHeights() {
     t_points.clear();
     cout << "Started: generating heights" << endl;
-    t_points = simplex_noise.generateVertices(70, 3, 0.5, 2, true);
+    t_points = simplex_noise.generateVertices(40, 4, 0.4, 2, true);
     cout << "Finished: generating heights" << endl;
 }
 
@@ -99,6 +99,8 @@ void Terrain::generateUvs() {
 void Terrain::generateNormals() {
     t_normals.clear();
     cout << "Started: generating normals" << endl;
+	// const int tl = 100;
+	// const int tw = 100;
     vec3 normals[terrain_length][terrain_width];
     
     for (int z = 0; z < terrain_length; z++) {
@@ -220,7 +222,7 @@ float Terrain::getHeight(int z, int x) {
 }
 
 float Terrain::heightModifier(float height) {
-    height = exp(height*4-4) * height_multiplier;
+    height = exp(height*6-6) * height_multiplier;
     return height;
 }
 
@@ -243,6 +245,9 @@ vec3 Terrain::getTriangleColor(triangle t) {
 
 void Terrain::createDisplayList() {
     cout << "Started: creating display list" << endl;
+    max_height = numeric_limits<float>::min();
+    min_Height = numeric_limits<float>::max();
+    
     if (t_displaylist) glDeleteLists(t_displaylist, 1);
     t_displaylist = glGenLists(1);
 
@@ -253,7 +258,7 @@ void Terrain::createDisplayList() {
     for (int i = 0; i < t_triangles.size()-1; i += 2) {
         triangle t1 = t_triangles[i];
         vec3 color = getTriangleColor(t1);
-        glColor3f(color.r, color.g, color.b);
+        
         for (int k = i; k < i + 2; k++) {
             triangle t = t_triangles[k];
             for (int j = 0; j < 3; j++) {
@@ -263,13 +268,19 @@ void Terrain::createDisplayList() {
                 vec2 uv = t_uvs[v.t];
 
                 float height = heightModifier(point.y);
+                if (height > max_height) {
+                    max_height = height;
+                }
+                if (height < min_Height) {
+                    min_Height = height;
+                }
                 
+                glColor3f(color.r, color.g, color.b);
                 glNormal3f(normal.x, normal.y, normal.z);
                 glTexCoord2f(uv.x*100, uv.y*100);
                 glVertex3f(point.x, height, point.z);
             }
         }
-
     }
     glEnd();
     glEndList();
@@ -295,9 +306,8 @@ void Terrain::createDisplayListWire() {
             vec3 normal = t_normals[v.n];
             float height = heightModifier(point.y);
             
-            glColor3f(color.r, color.g, color.b);
+            glColor3f(0.0, 1.0, 0.0);
             glNormal3f(normal.x, normal.y, normal.z);
-            
             glVertex3f(point.x, height, point.z);
         }
     }
@@ -328,23 +338,30 @@ void Terrain::setupTerrain() {
     createDisplayListWire();
 }
 
-void Terrain::renderTerrain() {
+void Terrain::renderTerrain(GLuint shader) {
     //glEnable(GL_COLOR_MATERIAL);
-    
+    //glDisable(GL_TEXTURE_2D);
     GLuint displayList = t_display_wire ? t_displaylist_wire : t_displaylist;
     glEnable(GL_COLOR_MATERIAL);
     //glEnable(GL_TEXTURE_2D);
     // Use Texture as the color
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     // Set the location for binding the texture
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     // Bind the texture
-    glBindTexture(GL_TEXTURE_2D, t_texture);
-    
+    //glBindTexture(GL_TEXTURE_2D, t_texture);
+    glUseProgram(shader);
+    glUniform1f(glGetUniformLocation(shader, "maxHeight"), max_height);
+    glUniform1f(glGetUniformLocation(shader, "minHeight"), min_Height);
+    //glUniform1i(glGetUniformLocation(shader, "texture0"), 0);
     glShadeModel(GL_SMOOTH);
     
     glPushMatrix();
     glTranslatef(x_off, y_off, z_off);
     glCallList(displayList);
-    glPushMatrix();
+    glPopMatrix();
+
+    glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_TEXTURE_2D);
+    glUseProgram(0);
 }

@@ -23,14 +23,17 @@ class Terrain {
     
 private:
     // Fields
-    int terrain_width = 240;
-    int terrain_length = 240;
+    int terrain_width = 100;
+    int terrain_length = 100;
     
     int x_off;
     int z_off;
     int y_off;
     
     float height_multiplier = 12;
+    
+    float max_height;
+    float min_Height;
     
     bool t_display_wire;
     
@@ -69,7 +72,7 @@ public:
     
     void reseedTerrain(int);
     void setupTerrain();
-    void renderTerrain();
+    void renderTerrain(GLuint);
     void toggleWireMode();
     
 };
